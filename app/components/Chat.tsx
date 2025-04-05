@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { sendMessageToSiliconFlow } from '../services/siliconflow';
+import { sendMessageToSiliconFlow, AVAILABLE_MODELS, ModelConfig } from '../services/siliconflow';
 
 interface Message {
   id: number;
@@ -13,6 +13,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<ModelConfig>(AVAILABLE_MODELS[0]);
   const apiKey = process.env.NEXT_PUBLIC_SILICONFLOW_API_KEY;
 
   const handleSendMessage = async () => {
@@ -35,7 +36,7 @@ export default function Chat() {
 
     try {
       // 调用SiliconFlow API
-      const response = await sendMessageToSiliconFlow(inputText, apiKey);
+      const response = await sendMessageToSiliconFlow(inputText, apiKey, selectedModel.id);
       
       // 添加AI回复
       const aiMessage: Message = {
@@ -54,6 +55,26 @@ export default function Chat() {
 
   return (
     <div className="flex flex-col h-screen max-w-2xl mx-auto p-4">
+      <div className="mb-4">
+        <label htmlFor="model-select" className="block text-sm font-medium text-gray-700 mb-1">
+          选择模型
+        </label>
+        <select
+          id="model-select"
+          value={selectedModel.id}
+          onChange={(e) => {
+            const model = AVAILABLE_MODELS.find(m => m.id === e.target.value);
+            if (model) setSelectedModel(model);
+          }}
+          className="w-full p-2 border rounded-lg bg-white"
+        >
+          {AVAILABLE_MODELS.map((model) => (
+            <option key={model.id} value={model.id}>
+              {model.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="flex-1 overflow-y-auto mb-4">
         {messages.map((message) => (
           <div

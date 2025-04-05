@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { sendMessageToSiliconFlow } from '../services/siliconflow';
 
 interface Message {
   id: number;
@@ -11,9 +12,15 @@ interface Message {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const apiKey = process.env.NEXT_PUBLIC_SILICONFLOW_API_KEY;
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputText.trim() === '') return;
+    if (!apiKey) {
+      alert('API Key未配置，请在.env.local文件中设置NEXT_PUBLIC_SILICONFLOW_API_KEY');
+      return;
+    }
 
     // 添加用户消息
     const userMessage: Message = {
@@ -24,16 +31,25 @@ export default function Chat() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputText('');
+    setIsLoading(true);
 
-    // 模拟AI回复
-    setTimeout(() => {
+    try {
+      // 调用SiliconFlow API
+      const response = await sendMessageToSiliconFlow(inputText, apiKey);
+      
+      // 添加AI回复
       const aiMessage: Message = {
         id: Date.now() + 1,
-        text: `这是对"${inputText}"的回复`,
+        text: response,
         isUser: false,
       };
       setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      alert('发送消息失败，请检查API Key是否正确');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,6 +73,13 @@ export default function Chat() {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="text-left">
+            <div className="inline-block p-3 rounded-lg bg-gray-200 text-gray-800">
+              正在思考...
+            </div>
+          </div>
+        )}
       </div>
       <div className="flex gap-2">
         <input
@@ -66,10 +89,12 @@ export default function Chat() {
           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
           className="flex-1 p-2 border rounded-lg"
           placeholder="输入消息..."
+          disabled={isLoading}
         />
         <button
           onClick={handleSendMessage}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-400"
+          disabled={isLoading}
         >
           发送
         </button>

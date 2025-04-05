@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { sendMessageToSiliconFlow, AVAILABLE_MODELS, ModelConfig } from '../services/siliconflow';
+import ReactMarkdown from 'react-markdown';
+import '../styles/markdown.css';
 
 interface Message {
   id: number;
@@ -118,7 +120,9 @@ export default function Chat() {
                   : 'bg-purple-200 text-gray-800'
               }`}
             >
-              {message.text}
+              <div className="markdown">
+                <ReactMarkdown>{message.text}</ReactMarkdown>
+              </div>
             </div>
           </div>
         ))}

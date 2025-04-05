@@ -48,6 +48,10 @@ export async function sendMessageToSiliconFlow(
         model: modelId,
         messages: [
           {
+            role: 'system',
+            content: '你是一位专业的室内设计师，专注于软装配色和空间规划。你擅长：\n1. 提供专业的色彩搭配建议\n2. 分析空间布局和功能分区\n3. 推荐适合的家具和装饰品\n4. 考虑光线、材质和风格的协调性\n5. 根据用户需求提供个性化的设计方案\n\n请用专业但易懂的语言回答用户的问题，必要时可以给出具体的色彩代码和材质建议。'
+          },
+          {
             role: 'user',
             content: message
           }
